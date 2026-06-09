@@ -118,7 +118,7 @@ class SpatialAttention(nn.Module):
         return self.sigmoid(x_sa)
 
 
-class HybridAttentionMamba(nn.Module):
+class LFSC_Mamba(nn.Module):
     def __init__(self, dim):
         super().__init__()
         self.channel_mamba = Mamba(d_model=dim, d_state=16, d_conv=4, expand=2)
@@ -137,7 +137,7 @@ class HybridAttentionMamba(nn.Module):
         return x_res + x_spatial_enhanced
 
 
-class HighFrequencyFDConvBlock(nn.Module):
+class HFDP(nn.Module):
     def __init__(self, dim, num_heads=8):
         super().__init__()
         self.fdconv_hl = FDConv(in_channels=dim, out_channels=dim, weight_gen_method="st")
@@ -152,7 +152,7 @@ class HighFrequencyFDConvBlock(nn.Module):
 
 
 
-class MDFL(nn.Module):
+class MDFLBlock(nn.Module):
     def __init__(self, dim, num_heads=8, ffn_expansion_factor=2.66, bias=True, LayerNorm_type='WithBias'):
         super(MDFL, self).__init__()
         self.DWT = blocks.DWT()
@@ -161,8 +161,8 @@ class MDFL(nn.Module):
         self.norm2 = LayerNorm(dim, LayerNorm_type)
         self.ffn = FeedForward(dim, ffn_expansion_factor, bias)
 
-        self.low_freq_processor = HybridAttentionMamba(dim=dim)
-        self.high_freq_processor = HighFrequencyFDConvBlock(dim=dim, num_heads=num_heads)
+        self.low_freq_processor = LFSC_Mamba(dim=dim)
+        self.high_freq_processor = HFDP(dim=dim, num_heads=num_heads)
 
     def forward(self, input_):
         x = input_
@@ -184,7 +184,7 @@ class MDFL(nn.Module):
         return x
 
 
-class Walmafa(nn.Module):
+class MDFL(nn.Module):
     def __init__(self,
                  inp_channels=4,
                  out_channels=3,
@@ -203,15 +203,15 @@ class Walmafa(nn.Module):
 
         self.patch_embed = OverlapPatchEmbed(inp_channels, dim_level1)
         self.encoder_level1 = nn.Sequential(*[
-            MDFL(dim=dim_level1, num_heads=heads1, ffn_expansion_factor=ffn_expansion_factor,
+            MDFLBlock(dim=dim_level1, num_heads=heads1, ffn_expansion_factor=ffn_expansion_factor,
                 bias=bias, LayerNorm_type=LayerNorm_type) for i in range(num_blocks[0])])
         self.down1 = Downsample(dim_level1)
         self.encoder_level2 = nn.Sequential(*[
-            MDFL(dim=dim_level2, num_heads=heads2, ffn_expansion_factor=ffn_expansion_factor,
+            MDFLBlock(dim=dim_level2, num_heads=heads2, ffn_expansion_factor=ffn_expansion_factor,
                 bias=bias, LayerNorm_type=LayerNorm_type) for i in range(num_blocks[1])])
         self.down2 = Downsample(dim_level2)
         self.encoder_level3 = nn.Sequential(*[
-            MDFL(dim=dim_level3, num_heads=heads3, ffn_expansion_factor=ffn_expansion_factor,
+            MDFLBlock(dim=dim_level3, num_heads=heads3, ffn_expansion_factor=ffn_expansion_factor,
                 bias=bias, LayerNorm_type=LayerNorm_type) for i in range(num_blocks[2])])
         self.latent = nn.Sequential(
             nn.Conv2d(dim_level3, dim_level3, kernel_size=3, padding=1, bias=bias),
@@ -220,13 +220,13 @@ class Walmafa(nn.Module):
         self.up2 = Upsample(dim_level3)
         self.decoder_level2_conv = nn.Conv2d(dim_level2 + dim_level2, dim_level2, kernel_size=1, bias=bias)
         self.decoder_level2 = nn.Sequential(*[
-            MDFL(dim=dim_level2, num_heads=heads2,
+            MDFLBlock(dim=dim_level2, num_heads=heads2,
                 ffn_expansion_factor=ffn_expansion_factor, bias=bias,
                 LayerNorm_type=LayerNorm_type) for i in range(num_blocks[1])])
         self.up1 = Upsample(dim_level2)
         self.decoder_level1_conv = nn.Conv2d(dim_level1 + dim_level1, dim_level1, kernel_size=1, bias=bias)
         self.decoder_level1 = nn.Sequential(*[
-            MDFL(dim=dim_level1, num_heads=heads1,
+            MDFLBlock(dim=dim_level1, num_heads=heads1,
                 ffn_expansion_factor=ffn_expansion_factor,
                 bias=bias, LayerNorm_type=LayerNorm_type) for i in range(num_blocks[0])])
         self.output = nn.Conv2d(dim_level1, out_channels, kernel_size=3, stride=1, padding=1, bias=bias)
