@@ -16,7 +16,7 @@ from warmup_scheduler.scheduler import GradualWarmupScheduler
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 
-from model.Walmafa import Walmafa
+from model.Walmafa import MDFL
 from src.discriminator import PatchDiscriminator
 from src.losses import PerceptualLoss, StyleLoss, AdversarialLoss
 from transform.data_RGB import get_training_data, get_validation_data
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     LOSS_WEIGHTS = opt['LOSS_WEIGHTS']
 
     print('==> Building generators and discriminators')
-    generator = Walmafa(inp_channels=4, out_channels=3, dim=32, num_blocks=[3, 4, 5], heads=[8, 8, 8],
+    generator = MDFL(inp_channels=4, out_channels=3, dim=32, num_blocks=[3, 4, 5], heads=[8, 8, 8],
                         ffn_expansion_factor=2.66, bias=False, LayerNorm_type='WithBias', skip=False)
     discriminator = PatchDiscriminator(in_channels=3)
     generator.cuda()
