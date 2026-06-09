@@ -11,7 +11,7 @@ from glob import glob
 import argparse
 import time
 from collections import OrderedDict
-from model.Walmafa import Walmafa
+from model.Walmafa import MDFL
 
 
 def load_checkpoint(model, weights):
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     if not files: print(f"No image files were found in '{inpudir}'!")
     if not masks: print(f"No mask files were found in '{mask_dir}'!")
 
-    model = Walmafa(inp_channels=4, out_channels=3, dim=32, num_blocks=[3, 4, 5], heads=[8, 8, 8], ffn_expansion_factor=2.66, bias=False, LayerNorm_type='WithBias', skip=False)
+    model = MDFL(inp_channels=4, out_channels=3, dim=32, num_blocks=[3, 4, 5], heads=[8, 8, 8], ffn_expansion_factor=2.66, bias=False, LayerNorm_type='WithBias', skip=False)
     model.cuda()
     model.eval()
 
