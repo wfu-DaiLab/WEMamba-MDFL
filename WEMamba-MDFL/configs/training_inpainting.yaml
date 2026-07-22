@@ -1,7 +1,7 @@
 TRAINING:
-  SAVE_DIR: '/home/li/wu/fir_work/WalMaFa/ESWA/First_Rework/WEMamba-MDFL（CelebA-HQ）/train_results/CelebA-HQ'
-  TRAIN_DIR: '/home/li/wu/data_set/inpainting/celeba-hq/train_28000_png'
-  TRAIN_MASK_DIR: '/home/li/wu/data_set/inpainting/celeba-hq/cele_ran60_28000_png'
+  SAVE_DIR: ''
+  TRAIN_DIR: ''
+  TRAIN_MASK_DIR: ''
 
   TRAIN_PS: 256
   VAL_PS: 256
